@@ -1,0 +1,530 @@
+<title>Drill Vocabulaire</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: une colonne étroite, une carte de question centrée sur l'action, barre de progression fine en haut. */
+:root {
+  --bg: #f1f4f8;
+  --surface: #ffffff;
+  --fg: #101c2b;
+  --muted: #5a6a7d;
+  --line: #d6dde7;
+  --accent: #2a55d9;
+  --accent-ink: #ffffff;
+  --chip: #e5ebf6;
+  --good: #167a4e;
+  --good-bg: #e0f3ea;
+  --bad: #b73a29;
+  --bad-bg: #fbe6e1;
+  --warn: #8a6100;
+  --warn-bg: #fbf0d2;
+  --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1520; --surface: #162030; --fg: #e8edf5; --muted: #91a0b4; --line: #293549;
+    --accent: #7f9fff; --accent-ink: #0b1220; --chip: #1f2c45;
+    --good: #52cb94; --good-bg: #11322a; --bad: #ff8f7d; --bad-bg: #3b1c17;
+    --warn: #f0c768; --warn-bg: #3a2f10; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1520; --surface: #162030; --fg: #e8edf5; --muted: #91a0b4; --line: #293549;
+  --accent: #7f9fff; --accent-ink: #0b1220; --chip: #1f2c45;
+  --good: #52cb94; --good-bg: #11322a; --bad: #ff8f7d; --bad-bg: #3b1c17;
+  --warn: #f0c768; --warn-bg: #3a2f10; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-block: 16px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.count { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.score { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.grow { flex: 1; }
+.link { background: none; border: 0; color: var(--muted); padding: 8px 4px; font-size: .9rem; text-decoration: underline; text-underline-offset: 3px; }
+.link:hover { color: var(--fg); }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar > div { height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 18px 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.tag { align-self: flex-start; background: var(--chip); color: var(--fg); font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+.prompt { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(1.55rem, 6vw, 2.1rem); line-height: 1.2; text-wrap: balance; overflow-wrap: anywhere; }
+.hint { margin: -6px 0 0; color: var(--muted); font-size: .95rem; }
+.opts { display: grid; gap: 10px; }
+.opt { display: flex; gap: 12px; align-items: center; text-align: left; width: 100%; min-height: 54px; padding: 10px 14px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; min-width: 0; overflow-wrap: anywhere; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt .n { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 6px; background: var(--chip); font-size: .78rem; font-weight: 600; color: var(--muted); }
+.opt:disabled { cursor: default; }
+.opt.ok { border-color: var(--good); background: var(--good-bg); }
+.opt.bad { border-color: var(--bad); background: var(--bad-bg); }
+.opt.dim { opacity: .55; }
+.typed { display: flex; gap: 10px; flex-wrap: wrap; }
+.typed input { flex: 1 1 200px; min-width: 0; font-size: 18px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); }
+.typed input:disabled { opacity: .7; }
+.primary { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 12px; padding: 12px 20px; font-weight: 600; min-height: 48px; }
+.primary:hover { filter: brightness(1.08); }
+.ghost { background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 18px; min-height: 48px; }
+.ghost:hover { border-color: var(--accent); }
+.fb { border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.fb strong { font-family: var(--font-display); font-size: 1.05rem; }
+.fb.good { background: var(--good-bg); color: var(--good); }
+.fb.bad { background: var(--bad-bg); color: var(--bad); }
+.fb.warn { background: var(--warn-bg); color: var(--warn); }
+.fb span { color: var(--fg); overflow-wrap: anywhere; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; }
+h3 { margin: 0; font-family: var(--font-display); font-size: 1.05rem; }
+.big { font-family: var(--font-display); font-weight: 700; font-size: 3rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.stats { display: flex; gap: 22px; flex-wrap: wrap; color: var(--muted); font-size: .92rem; }
+.stats b { color: var(--fg); font-variant-numeric: tabular-nums; }
+.list { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.list > div { padding: 10px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; overflow-wrap: anywhere; }
+.list .q { font-weight: 600; }
+.list .a { color: var(--muted); font-size: .92rem; }
+.list .a s { color: var(--bad); }
+.list .note { color: var(--muted); font-size: .85rem; }
+.set { display: flex; flex-direction: column; gap: 8px; }
+.set label { display: flex; gap: 10px; align-items: center; min-height: 36px; }
+.set input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); }
+.set select { padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); min-height: 44px; }
+.fine { color: var(--muted); font-size: .85rem; margin: 0; }
+.empty { text-align: center; color: var(--muted); padding: 12px 0; }
+@media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+</style>
+
+<div class="wrap" id="app">
+  <section id="v-quiz" hidden>
+    <div class="top">
+      <span class="count" id="cnt"></span>
+      <span class="score">Juste : <b id="score">0</b></span>
+      <span class="score" id="streak"></span>
+      <span class="grow"></span>
+      <button class="link" id="b-set">Réglages</button>
+      <button class="link" id="b-stop">Terminer</button>
+    </div>
+    <div class="bar" style="margin-block:10px 14px"><div id="fill"></div></div>
+    <div class="card" id="card"></div>
+  </section>
+
+  <section id="v-end" hidden class="card"></section>
+
+  <section id="v-set" hidden class="card">
+    <h2>Réglages</h2>
+    <div class="set">
+      <h3>Types de questions</h3>
+      <label><input type="checkbox" id="t-en2fr"> Anglais vers français (QCM)</label>
+      <label><input type="checkbox" id="t-fr2en"> Français vers anglais (QCM)</label>
+      <label><input type="checkbox" id="t-typed"> Écrire la réponse au clavier</label>
+      <label><input type="checkbox" id="t-spell"> Choisir la bonne orthographe</label>
+      <label><input type="checkbox" id="t-abbr"> Abréviations réseau (LAN, OSPF, RFC…)</label>
+      <label><input type="checkbox" id="t-irr"> Verbes irréguliers</label>
+    </div>
+    <div class="set">
+      <h3>Longueur de la série</h3>
+      <select id="s-n">
+        <option value="60">60 questions</option>
+        <option value="120">120 questions</option>
+        <option value="200">200 questions</option>
+        <option value="300">300 questions</option>
+        <option value="450">450 questions (marathon)</option>
+      </select>
+      <h3 style="margin-top:8px">Mots à travailler</h3>
+      <select id="s-focus">
+        <option value="all">Tous les mots</option>
+        <option value="weak">Surtout mes mots ratés</option>
+      </select>
+      <label style="margin-top:6px"><input type="checkbox" id="s-auto"> Passer tout seul à la suite quand c'est juste</label>
+    </div>
+    <div class="row">
+      <button class="primary" id="b-go">Lancer une nouvelle série</button>
+      <button class="ghost" id="b-cancel">Retour</button>
+    </div>
+    <div class="row">
+      <button class="ghost" id="b-corr">Corrections faites à mes cartes</button>
+      <button class="ghost" id="b-reset">Effacer mes stats</button>
+    </div>
+    <p class="fine" id="fine"></p>
+  </section>
+
+  <section id="v-corr" hidden class="card">
+    <h2>Corrections faites à mes cartes</h2>
+    <p class="fine">Ces cartes avaient une faute ou une traduction approximative. Compare avec ton cours : si ton prof attend une autre version, garde la sienne.</p>
+    <div class="list" id="corr-list"></div>
+    <div class="row"><button class="primary" id="b-corr-back">Retour</button></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var DATA = {"cards": [{"i": 0, "f": "highway", "b": "autoroute", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 1, "f": "cool", "b": "frais", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 2, "f": "a smell", "b": "une odeur", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 3, "f": "to shimmer", "b": "scintiller, miroiter, trembler", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 4, "f": "sight", "b": "la vue", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 5, "f": "dim", "b": "faible", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 6, "f": "to grow", "b": "devenir, grandir", "k": "w", "g": "lit", "irr": ["grew", "grown"], "acc": null, "typed": true}, {"i": 7, "f": "to light up", "b": "allumer", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 8, "f": "a candle", "b": "une bougie", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 9, "f": "a corridor", "b": "un couloir", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 10, "f": "anytime of year", "b": "à n’importe quel moment de l’année", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 11, "f": "sweet", "b": "doux, sucré", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 12, "f": "sweat", "b": "la transpiration", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 13, "f": "to remember", "b": "se souvenir", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 14, "f": "to forget", "b": "oublier", "k": "w", "g": "lit", "irr": ["forgot", "forgotten"], "acc": null, "typed": true}, {"i": 15, "f": "to live it up", "b": "mener la grande vie", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 16, "f": "ceiling / floor", "b": "le plafond / le sol", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": false}, {"i": 17, "f": "of our own devices", "b": "parce que nous l’avons décidé", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 18, "f": "to gather", "b": "rassembler", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 19, "f": "to stab", "b": "poignarder", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 20, "f": "steel / steely", "b": "l’acier / en acier", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": false}, {"i": 21, "f": "to check out", "b": "payer la note / mourir", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 22, "f": "to troubleshoot", "b": "dépanner", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 23, "f": "to intend to", "b": "avoir l’intention de", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 24, "f": "farther", "b": "plus loin", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 25, "f": "to ensure", "b": "s’assurer de", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 26, "f": "otherwise", "b": "autrement", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 27, "f": "to achieve", "b": "atteindre, réaliser", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 28, "f": "previous", "b": "précédent", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 29, "f": "mastery", "b": "maîtrise", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 30, "f": "to switch", "b": "commuter", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 31, "f": "backbone", "b": "épine dorsale", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 32, "f": "neither…nor", "b": "ni…ni", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": false}, {"i": 33, "f": "therefore", "b": "donc, alors", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 34, "f": "to outline", "b": "esquisser, indiquer", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 35, "f": "goal / purpose", "b": "but", "k": "w", "g": "tech", "irr": null, "acc": ["goal", "purpose"], "typed": true}, {"i": 36, "f": "acknowledgment", "b": "reconnaissance, constatation, accusé de réception", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 37, "f": "anything else", "b": "quoi que ce soit d’autre", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 38, "f": "knowledge", "b": "connaissance", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 39, "f": "major", "b": "principal", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 40, "f": "to have trouble", "b": "avoir des difficultés", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 41, "f": "self-assessment", "b": "auto-évaluation", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 42, "f": "neighbor", "b": "voisin", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 43, "f": "to guess", "b": "deviner", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 44, "f": "to flood", "b": "inonder, noyer, irriguer", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 45, "f": "to forward", "b": "faire suivre, expédier", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 46, "f": "whenever", "b": "à chaque fois que", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 47, "f": "already", "b": "déjà", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 48, "f": "to skew", "b": "biaiser, fausser", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 49, "f": "to drop", "b": "lâcher, abandonner", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 50, "f": "remote", "b": "à distance", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 51, "f": "to deal with", "b": "parler de, traiter de", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 52, "f": "to provide", "b": "donner, fournir", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 53, "f": "understanding / comprehension", "b": "compréhension", "k": "w", "g": "tech", "irr": null, "acc": ["understanding", "comprehension"], "typed": true}, {"i": 54, "f": "there is no need", "b": "ce n’est pas la peine", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 55, "f": "how often", "b": "avec quelle fréquence", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 56, "f": "within", "b": "au sein de", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 57, "f": "to gauge", "b": "mesurer, évaluer", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 58, "f": "to assume", "b": "présumer, supposer", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 59, "f": "to share", "b": "partager", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 60, "f": "reply / response", "b": "réponse", "k": "w", "g": "tech", "irr": null, "acc": ["reply", "response"], "typed": true}, {"i": 61, "f": "to override", "b": "annuler", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 62, "f": "to prevent from", "b": "empêcher de (faire)", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 63, "f": "to mean / to stand for", "b": "signifier vouloir dire", "k": "w", "g": "tech", "irr": null, "acc": ["to mean", "to stand for"], "typed": true}, {"i": 64, "f": "to perform", "b": "réaliser, effectuer", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 65, "f": "two-way", "b": "à double sens, bilatéral", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 66, "f": "also", "b": "aussi", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 67, "f": "stage", "b": "étape", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 68, "f": "either … or", "b": "ou…ou", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": false}, {"i": 69, "f": "as such", "b": "en tant que tel", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 70, "f": "bandwidth", "b": "largeur de bande", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 71, "f": "feature", "b": "caractéristique", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 72, "f": "to belong", "b": "appartenir", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 73, "f": "to fail", "b": "échouer, tomber en panne", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 74, "f": "relationship", "b": "relation", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 75, "f": "none", "b": "aucun", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 76, "f": "to interrelate", "b": "entrer en relation", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 77, "f": "efficient", "b": "efficace", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 78, "f": "each", "b": "chaque", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 79, "f": "own", "b": "propre, à soi", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 80, "f": "straightforward", "b": "simple, franc", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 81, "f": "so that", "b": "pour que, afin que", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 82, "f": "fully", "b": "totalement", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 83, "f": "to prompt", "b": "provoquer, pousser à", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 84, "f": "accurate", "b": "précis, fidèle, exact", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 85, "f": "to prune", "b": "tailler, élaguer, réduire", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 86, "f": "while", "b": "pendant que", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 87, "f": "to summarize", "b": "résumer, récapituler", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 88, "f": "to await", "b": "attendre", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 89, "f": "the next few chapters", "b": "les quelques chapitres suivants", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 90, "f": "obvious", "b": "évident", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 91, "f": "conversely", "b": "inversement, réciproquement", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 92, "f": "SPF", "b": "shortest path first", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 93, "f": "OSPF", "b": "open shortest path first", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 94, "f": "LAN", "b": "local area network", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 95, "f": "WAN", "b": "wide area network", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 96, "f": "LSA", "b": "link state advertisement", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 97, "f": "LSU", "b": "link state update", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 98, "f": "LSR", "b": "link state request", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 99, "f": "LSP", "b": "link state packet", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 100, "f": "DR", "b": "designated router", "k": "a", "g": "acr", "irr": null, "acc": ["designed router"], "typed": true}, {"i": 101, "f": "BDR", "b": "backup designated router", "k": "a", "g": "acr", "irr": null, "acc": ["backup designed router"], "typed": true}, {"i": 102, "f": "NBMA", "b": "non-broadcast multi-access", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 103, "f": "DBD", "b": "database descriptor", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 104, "f": "DDP", "b": "database descriptor packet", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 105, "f": "IP", "b": "internet protocol", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 106, "f": "CPU", "b": "central processing unit", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 107, "f": "PVC", "b": "permanent virtual circuit", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 108, "f": "HDLC", "b": "high-level data link control", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 109, "f": "FDDI", "b": "fiber distributed data interface", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 110, "f": "RFC", "b": "request for comments", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 111, "f": "IOS", "b": "internetwork operating system", "k": "a", "g": "acr", "irr": null, "acc": ["input output system"], "typed": true}, {"i": 112, "f": "to rely on", "b": "compter sur", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 113, "f": "size", "b": "taille", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 114, "f": "unfortunately", "b": "malheureusement", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 115, "f": "old / elderly", "b": "vieux / âgé", "k": "w", "g": "tech", "irr": null, "acc": ["old", "elderly"], "typed": true}, {"i": 116, "f": "available", "b": "disponible", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 117, "f": "to set", "b": "fixer", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 118, "f": "frail", "b": "faible, fragile", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 119, "f": "understudy", "b": "une doublure", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 120, "f": "to pick / to select", "b": "choisir / sélectionner", "k": "w", "g": "tech", "irr": null, "acc": ["to pick", "to select"], "typed": true}, {"i": 121, "f": "the wings", "b": "les coulisses", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 122, "f": "although", "b": "bien que", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 123, "f": "authentication", "b": "authentification", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 124, "f": "a header", "b": "un en-tête", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 125, "f": "currently", "b": "actuellement", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 126, "f": "to match", "b": "égaler, correspondre", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 127, "f": "length", "b": "longueur", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 128, "f": "to state", "b": "énoncer, exposer, indiquer", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 129, "f": "unavailable", "b": "non disponible", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 130, "f": "checksum", "b": "somme de contrôle", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 131, "f": "even if", "b": "même si", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 132, "f": "to keep alive", "b": "préserver, garder", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 133, "f": "wireless", "b": "sans fil", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 134, "f": "digital", "b": "numérique", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 135, "f": "to retranscribe", "b": "retranscrire", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 136, "f": "marvelous / wonderful", "b": "merveilleux", "k": "w", "g": "tech", "irr": null, "acc": ["marvelous", "wonderful", "marvellous"], "typed": true}, {"i": 137, "f": "handwritten", "b": "manuscrit", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 138, "f": "without", "b": "sans", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 139, "f": "to need to", "b": "avoir besoin de", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 140, "f": "to tap away", "b": "pianoter", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 141, "f": "to transmit", "b": "transmettre", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 142, "f": "to appear", "b": "apparaître", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 143, "f": "in real time", "b": "en temps réel", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 144, "f": "even better", "b": "encore mieux", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 145, "f": "anywhere", "b": "n’importe où", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 146, "f": "instead of", "b": "au lieu de", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 147, "f": "laptop", "b": "ordinateur portable", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 148, "f": "at the top of", "b": "en haut de", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 149, "f": "to capture", "b": "capter", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 150, "f": "to draw", "b": "dessiner", "k": "w", "g": "tech", "irr": ["drew", "drawn"], "acc": null, "typed": true}, {"i": 151, "f": "to save", "b": "sauvegarder", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 152, "f": "once back home", "b": "une fois rentré à la maison", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 153, "f": "content", "b": "un contenu", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 154, "f": "to store", "b": "stocker archiver", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 155, "f": "to print", "b": "imprimer", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 156, "f": "equipped with", "b": "équipé de", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 157, "f": "a cartridge", "b": "une cartouche", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 158, "f": "ink", "b": "l’encre", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 159, "f": "to include", "b": "inclure, comprendre", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 160, "f": "internal", "b": "interne", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 161, "f": "memory", "b": "mémoire", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 162, "f": "to recharge", "b": "recharger", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 163, "f": "to deliver", "b": "livrer", "k": "w", "g": "tech", "irr": null, "acc": null, "typed": true}, {"i": 164, "f": "OCR", "b": "optical character recognition", "k": "a", "g": "acr", "irr": null, "acc": null, "typed": true}, {"i": 165, "f": "to glitter", "b": "briller", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 166, "f": "all that glitters is not gold", "b": "tout ce qui brille n’est pas or", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 167, "f": "stairway", "b": "un escalier", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 168, "f": "a store", "b": "un magasin, un entrepôt", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 169, "f": "to get", "b": "obtenir, arriver", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 170, "f": "a meaning", "b": "un sens / une signification", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 171, "f": "a brook", "b": "un ruisseau", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 172, "f": "by", "b": "à côté de", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 173, "f": "to think", "b": "penser", "k": "w", "g": "lit", "irr": ["thought", "thought"], "acc": null, "typed": true}, {"i": 174, "f": "misgiving", "b": "un doute, une appréhension", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 175, "f": "to wonder", "b": "se demander", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 176, "f": "a ring", "b": "un anneau, une bague", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 177, "f": "smoke", "b": "la fumée", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 178, "f": "to whisper", "b": "murmurer", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 179, "f": "to dawn", "b": "le jour qui se lève", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 180, "f": "dawn / dusk", "b": "l’aurore / le crépuscule", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": false}, {"i": 181, "f": "laughter", "b": "le rire", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 182, "f": "bustle", "b": "du remue-ménage", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 183, "f": "a hedgerow", "b": "une haie", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 184, "f": "a path", "b": "un chemin", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 185, "f": "to hum", "b": "bourdonner", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 186, "f": "to blow", "b": "souffler", "k": "w", "g": "lit", "irr": ["blew", "blown"], "acc": null, "typed": true}, {"i": 187, "f": "a shadow", "b": "une ombre", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 188, "f": "at last / at least", "b": "enfin / au moins", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": false}, {"i": 189, "f": "a tune", "b": "un air (de musique)", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 190, "f": "to sing another tune", "b": "changer de ton", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 191, "f": "spring clean", "b": "le nettoyage de printemps", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 192, "f": "to lie (lied)", "b": "mentir", "k": "w", "g": "lit", "irr": null, "acc": null, "typed": true}, {"i": 193, "f": "to lie (lay)", "b": "reposer, être allongé", "k": "w", "g": "lit", "irr": ["lay", "lain"], "acc": null, "typed": true}, {"i": 194, "f": "cover letter", "b": "lettre de motivation", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 195, "f": "work-study program", "b": "formation en alternance", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 196, "f": "internship", "b": "la partie de l’alternance en entreprise", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 197, "f": "to apply for (a job)", "b": "postuler à un emploi", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 198, "f": "job market", "b": "le marché du travail", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 199, "f": "training course", "b": "un stage de formation", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 200, "f": "work placement", "b": "un stage (découverte) dans une entreprise", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 201, "f": "undergraduate student", "b": "un étudiant en dessous de bac +3", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 202, "f": "professional / technical degree", "b": "licence pro", "k": "w", "g": "job", "irr": null, "acc": ["professional degree", "technical degree"], "typed": true}, {"i": 203, "f": "postgraduate studies", "b": "études au-dessus de la licence", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 204, "f": "casual work", "b": "travail occasionnel", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 205, "f": "volunteer work", "b": "bénévolat", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 206, "f": "summer job", "b": "travail d’été", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 207, "f": "temp work", "b": "intérim", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 208, "f": "permanent contract", "b": "C.D.I.", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 209, "f": "part-time job", "b": "travail à temps partiel", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 210, "f": "sick leave", "b": "arrêt de travail", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 211, "f": "perks / fringe benefits", "b": "avantages en nature", "k": "w", "g": "job", "irr": null, "acc": ["perks", "fringe benefits"], "typed": true}, {"i": 212, "f": "luncheon vouchers", "b": "ticket restaurant", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 213, "f": "corporate / company retirement scheme", "b": "plan de retraite d’entreprise", "k": "w", "g": "job", "irr": null, "acc": ["corporate retirement scheme", "company retirement scheme"], "typed": true}, {"i": 214, "f": "corporate / company health insurance scheme", "b": "mutuelle d’entreprise", "k": "w", "g": "job", "irr": null, "acc": ["corporate health insurance scheme", "company health insurance scheme"], "typed": true}, {"i": 215, "f": "department assistant manager", "b": "chef de service adjoint", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 216, "f": "trade union representative", "b": "délégué syndical", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 217, "f": "trainee computer technician", "b": "technicien IT stagiaire / en formation", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 218, "f": "vacant position", "b": "poste vacant", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 219, "f": "skills", "b": "compétences professionnelles", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 220, "f": "days off", "b": "journées de congé", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 221, "f": "availability", "b": "disponibilité", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 222, "f": "to hire", "b": "embaucher", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}, {"i": 223, "f": "vocational hazard", "b": "danger lié à la profession", "k": "w", "g": "job", "irr": null, "acc": null, "typed": true}], "corr": [{"of": "hithway", "ob": "autoroute", "nf": "highway", "nb": "autoroute", "note": "Orthographe : « highway »."}, {"of": "to shimmer", "ob": "trembler", "nf": "to shimmer", "nb": "scintiller, miroiter, trembler", "note": "to shimmer = scintiller, miroiter ; « trembler » conservé en plus."}, {"of": "to graw-grew-grown", "ob": "devenir", "nf": "to grow", "nb": "devenir, grandir", "note": null}, {"of": "to light up-lit-lit", "ob": "allumer", "nf": "to light up", "nb": "allumer", "note": null}, {"of": "anytime of year", "ob": "a n’importe qu’elle moment de l’année", "nf": "anytime of year", "nb": "à n’importe quel moment de l’année", "note": null}, {"of": "twisted", "ob": "acro a fanatique de", "nf": null, "nb": null, "note": "Retirée du quiz : la traduction notée (« acro à / fanatique de ») ne correspond pas à « twisted » (tordu).", "excluded": true}, {"of": "sweet", "ob": "doit", "nf": "sweet", "nb": "doux, sucré", "note": "La traduction notée était « doit » : corrigée en « doux, sucré »."}, {"of": "to remember", "ob": "se souvenirs", "nf": "to remember", "nb": "se souvenir", "note": null}, {"of": "to forget-forgot-forgot", "ob": "oublier", "nf": "to forget", "nb": "oublier", "note": "Participe passé : forgotten (pas forgot)."}, {"of": "to live up", "ob": "mener la grande vie", "nf": "to live it up", "nb": "mener la grande vie", "note": "L'expression est « to live it up »."}, {"of": "ceiling/floor", "ob": "le plafon/le sol", "nf": "ceiling / floor", "nb": "le plafond / le sol", "note": null}, {"of": "of our own device", "ob": "parce que nous l’avons décider", "nf": "of our own devices", "nb": "parce que nous l’avons décidé", "note": "L'expression est « of our own devices »."}, {"of": "to stale", "ob": "poignarder", "nf": "to stab", "nb": "poignarder", "note": "« to stale » n'existe pas : c'est « to stab » (poignarder)."}, {"of": "steel/stelly", "ob": "l’acier/en acier", "nf": "steel / steely", "nb": "l’acier / en acier", "note": null}, {"of": "to sensure", "ob": "s’assurer de", "nf": "to ensure", "nb": "s’assurer de", "note": "Orthographe : « to ensure »."}, {"of": "to archive", "ob": "atteindre,réaliser", "nf": "to achieve", "nb": "atteindre, réaliser", "note": "« atteindre, réaliser » = « to achieve » (to archive = archiver)."}, {"of": "mastery", "ob": "maitrise", "nf": "mastery", "nb": "maîtrise", "note": null}, {"of": "enything else", "ob": "quoi que ce soit d’autre", "nf": "anything else", "nb": "quoi que ce soit d’autre", "note": null}, {"of": "self assesment", "ob": "auto-évaluation", "nf": "self-assessment", "nb": "auto-évaluation", "note": null}, {"of": "to guest", "ob": "deviner", "nf": "to guess", "nb": "deviner", "note": "Verbe « to guess » (deviner)."}, {"of": "to deal with", "ob": "parler de", "nf": "to deal with", "nb": "parler de, traiter de", "note": null}, {"of": "replay/response", "ob": "réponse", "nf": "reply / response", "nb": "réponse", "note": null}, {"of": "to perform", "ob": "affecter,réaliser", "nf": "to perform", "nb": "réaliser, effectuer", "note": "« affecter » = to affect ; to perform = réaliser, effectuer."}, {"of": "as shuch", "ob": "en tant que tel", "nf": "as such", "nb": "en tant que tel", "note": null}, {"of": "bandwith", "ob": "largeur de bande", "nf": "bandwidth", "nb": "largeur de bande", "note": null}, {"of": "relashionship", "ob": "relation", "nf": "relationship", "nb": "relation", "note": null}, {"of": "own", "ob": "propre,à sois", "nf": "own", "nb": "propre, à soi", "note": null}, {"of": "straightfoward", "ob": "simple,franc", "nf": "straightforward", "nb": "simple, franc", "note": null}, {"of": "the next few chapter", "ob": "les quelques chapitres suivants", "nf": "the next few chapters", "nb": "les quelques chapitres suivants", "note": null}, {"of": "spf", "ob": "shotest path first", "nf": "SPF", "nb": "shortest path first", "note": null}, {"of": "OSPF", "ob": "open shotest path first", "nf": "OSPF", "nb": "open shortest path first", "note": null}, {"of": "LSA", "ob": "link stage advertissement", "nf": "LSA", "nb": "link state advertisement", "note": null}, {"of": "DR", "ob": "designed Router", "nf": "DR", "nb": "designated router", "note": null}, {"of": "BDR", "ob": "backup designed router", "nf": "BDR", "nb": "backup designated router", "note": null}, {"of": "NBMA", "ob": "non broacast multi access", "nf": "NBMA", "nb": "non-broadcast multi-access", "note": null}, {"of": "IP", "ob": "internet protocole", "nf": "IP", "nb": "internet protocol", "note": null}, {"of": "CPU", "ob": "Central proccesing unit", "nf": "CPU", "nb": "central processing unit", "note": null}, {"of": "PVC", "ob": "permanente virtual circuit", "nf": "PVC", "nb": "permanent virtual circuit", "note": null}, {"of": "FDDI", "ob": "fibre distributed data interface", "nf": "FDDI", "nb": "fiber distributed data interface", "note": null}, {"of": "RFC", "ob": "request for comment", "nf": "RFC", "nb": "request for comments", "note": null}, {"of": "IOS", "ob": "input output system", "nf": "IOS", "nb": "internetwork operating system", "note": "Cisco IOS = Internetwork Operating System (pas « input output system »). À vérifier avec ton cours."}, {"of": "old-oldely", "ob": "vieux-agé", "nf": "old / elderly", "nb": "vieux / âgé", "note": null}, {"of": "avaible", "ob": "disponible", "nf": "available", "nb": "disponible", "note": null}, {"of": "to pick/to select", "ob": "choisir/selectionner", "nf": "to pick / to select", "nb": "choisir / sélectionner", "note": null}, {"of": "authentification", "ob": "authentification", "nf": "authentication", "nb": "authentification", "note": "Orthographe anglaise : authentication."}, {"of": "a header", "ob": "une en-tête", "nf": "a header", "nb": "un en-tête", "note": null}, {"of": "lenght", "ob": "longueur", "nf": "length", "nb": "longueur", "note": null}, {"of": "unavaible", "ob": "non disponible", "nf": "unavailable", "nb": "non disponible", "note": null}, {"of": "wireless", "ob": "sans fils", "nf": "wireless", "nb": "sans fil", "note": null}, {"of": "à fonder/an marvel", "ob": "merveilleux", "nf": "marvelous / wonderful", "nb": "merveilleux", "note": "Reformulé en « marvelous / wonderful » (merveilleux)."}, {"of": "need to", "ob": "avoir besoin de", "nf": "to need to", "nb": "avoir besoin de", "note": null}, {"of": "transmitter", "ob": "transmettre", "nf": "to transmit", "nb": "transmettre", "note": "« transmitter » = émetteur ; « transmettre » = to transmit."}, {"of": "un real time", "ob": "en temps réel", "nf": "in real time", "nb": "en temps réel", "note": null}, {"of": "un stead of", "ob": "au lieu de", "nf": "instead of", "nb": "au lieu de", "note": null}, {"of": "latop", "ob": "ordinateur portable", "nf": "laptop", "nb": "ordinateur portable", "note": null}, {"of": "to draw-drew-drawn", "ob": "designer", "nf": "to draw", "nb": "dessiner", "note": "« designer » → « dessiner » (to draw)."}, {"of": "a content", "ob": "un contenue", "nf": "content", "nb": "un contenu", "note": "« content » est indénombrable : un contenu."}, {"of": "equipped with", "ob": "équiper avec", "nf": "equipped with", "nb": "équipé de", "note": null}, {"of": "ink", "ob": "de l’encre", "nf": "ink", "nb": "l’encre", "note": null}, {"of": "to include", "ob": "fournir", "nf": "to include", "nb": "inclure, comprendre", "note": "to include = inclure, comprendre (« fournir » = to provide)."}, {"of": "all that glitters is not gold", "ob": "tous ce qui brille n’est pas or", "nf": "all that glitters is not gold", "nb": "tout ce qui brille n’est pas or", "note": null}, {"of": "a stor", "ob": "magasin entrepôt", "nf": "a store", "nb": "un magasin, un entrepôt", "note": "Orthographe : « a store »."}, {"of": "to get-got-got", "ob": "arriver", "nf": "to get", "nb": "obtenir, arriver", "note": "Sens ajouté : obtenir (en plus de « arriver »)."}, {"of": "a meaning", "ob": "un sens/signification", "nf": "a meaning", "nb": "un sens / une signification", "note": null}, {"of": "by", "ob": "à coter de", "nf": "by", "nb": "à côté de", "note": null}, {"of": "to think-throught-throught", "ob": "penser", "nf": "to think", "nb": "penser", "note": null}, {"of": "misgiver", "ob": "plein de doute", "nf": "misgiving", "nb": "un doute, une appréhension", "note": "« misgiving » est un nom : un doute, une appréhension."}, {"of": "a ring", "ob": "un anneau", "nf": "a ring", "nb": "un anneau, une bague", "note": null}, {"of": "smoke", "ob": "la fumer", "nf": "smoke", "nb": "la fumée", "note": null}, {"of": "dawn/dusk", "ob": "l’aurore crépuscule", "nf": "dawn / dusk", "nb": "l’aurore / le crépuscule", "note": null}, {"of": "bustle", "ob": "du remus ménage", "nf": "bustle", "nb": "du remue-ménage", "note": null}, {"of": "to sing another tune", "ob": "changer de tong", "nf": "to sing another tune", "nb": "changer de ton", "note": null}, {"of": "sprint clean", "ob": "le nettoyage de printemps", "nf": "spring clean", "nb": "le nettoyage de printemps", "note": "Orthographe : « spring clean »."}, {"of": "to lie lay-lain", "ob": "reposer,être allongé", "nf": "to lie (lay)", "nb": "reposer, être allongé", "note": null}, {"of": "back up letter", "ob": "lettre de motivation", "nf": "cover letter", "nb": "lettre de motivation", "note": "Lettre de motivation = « cover letter »."}, {"of": "work-study program", "ob": "formation de l’alternance", "nf": "work-study program", "nb": "formation en alternance", "note": null}, {"of": "intership", "ob": "partie de l’alternance en entreprise", "nf": "internship", "nb": "la partie de l’alternance en entreprise", "note": null}, {"of": "to apply for (a job)", "ob": "postuler pour un emploi", "nf": "to apply for (a job)", "nb": "postuler à un emploi", "note": null}, {"of": "permanent contrat", "ob": "C.D.I.", "nf": "permanent contract", "nb": "C.D.I.", "note": null}, {"of": "perks/fringe benefits", "ob": "avantage de nature", "nf": "perks / fringe benefits", "nb": "avantages en nature", "note": null}, {"of": "corporate/compagny retirement scheme", "ob": "plan de retraite d’entreprise", "nf": "corporate / company retirement scheme", "nb": "plan de retraite d’entreprise", "note": null}, {"of": "corporate/compagny health insurance scheme", "ob": "mutuelle d’entreprise", "nf": "corporate / company health insurance scheme", "nb": "mutuelle d’entreprise", "note": null}, {"of": "departement assistant manager", "ob": "chef de service adjoint", "nf": "department assistant manager", "nb": "chef de service adjoint", "note": null}, {"of": "trade union representative", "ob": "délégué syndicat", "nf": "trade union representative", "nb": "délégué syndical", "note": null}, {"of": "days off", "ob": "journée de congés", "nf": "days off", "nb": "journées de congé", "note": null}, {"of": "availability", "ob": "disponiblé", "nf": "availability", "nb": "disponibilité", "note": null}, {"of": "to blow-blew-blown", "ob": "souffler", "nf": "to blow", "nb": "souffler", "note": "Formes irrégulières séparées : blew, blown."}, {"of": "a tune", "ob": "un air de musique (ton)", "nf": "a tune", "nb": "un air (de musique)", "note": null}, {"of": "to await", "ob": "être en attente", "nf": "to await", "nb": "attendre", "note": "Plus naturel : attendre."}]};
+  var CARDS = DATA.cards, CORR = DATA.corr;
+  var $ = function (s) { return document.querySelector(s); };
+  var rnd = function (n) { return Math.floor(Math.random() * n); };
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function strip(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function norm(s) { return strip(s).replace(/[’']/g, "'").replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function lev(a, b) {
+    if (a === b) return 0; var m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+    var prev = []; for (var j = 0; j <= n; j++) prev[j] = j;
+    for (var i = 1; i <= m; i++) {
+      var cur = [i];
+      for (var k = 1; k <= n; k++) cur[k] = Math.min(prev[k] + 1, cur[k - 1] + 1, prev[k - 1] + (a[i - 1] === b[k - 1] ? 0 : 1));
+      prev = cur;
+    }
+    return prev[n];
+  }
+  function sim(a, b) { a = norm(a); b = norm(b); var L = Math.max(a.length, b.length) || 1; return 1 - lev(a, b) / L; }
+
+  /* ---------- stockage léger (stats par mot) ---------- */
+  var LS = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  var stats = LS.get('vocab_stats_v1', {});
+  var cfg = Object.assign({ n: 120, focus: 'all', auto: true, T: { en2fr: true, fr2en: true, typed: true, spell: true, abbr: true, irr: true } }, LS.get('vocab_cfg_v1', {}));
+  cfg.T = Object.assign({ en2fr: true, fr2en: true, typed: true, spell: true, abbr: true, irr: true }, cfg.T);
+
+  /* ---------- pré-calculs sur les cartes ---------- */
+  function meanings(b) {
+    return b.replace(/\([^)]*\)/g, '').split(/\s*[,\/;]\s*/).map(function (t) {
+      t = norm(t).replace(/^(un|une|le|la|les|du|des|de la|de l'|de)\s+/, '').replace(/^(l'|d')/, ''); return t;
+    }).filter(Boolean);
+  }
+  function frShape(b) {
+    var nb = norm(b);
+    if (/^(un|une|le|la|l'|les|du|des|de l'|d')/.test(nb)) return 'noun';
+    var w = nb.split(',')[0].replace(/^(se|s')\s*/, '').split(' ')[0];
+    if (/(er|ir|re|oir)$/.test(w) && w.length > 3 && ['propre', 'autre'].indexOf(w) < 0) return 'verb';
+    return /\s/.test(nb) ? 'phrase' : 'word';
+  }
+  var ALLF = {};
+  CARDS.forEach(function (c) {
+    c.m = meanings(c.b);
+    c.bk = norm(c.f.replace(/\([^)]*\)/g, '')).replace(/^to /, '');
+    c.enShape = c.k === 'a' ? 'abbr' : /^to /.test(c.f) ? 'verb' : /\s/.test(c.f) ? 'phrase' : 'word';
+    c.frShape = frShape(c.b);
+    ALLF[norm(c.f)] = 1;
+  });
+
+  /* ---------- pondération selon mes erreurs ---------- */
+  function weight(c) {
+    var st = stats[c.f]; if (!st) return 1;
+    return Math.min(6, Math.max(0.5, 1 + 1.5 * st.m - 0.6 * st.s));
+  }
+  function isWeak(c) { var st = stats[c.f]; return !!(st && st.m > 0 && weight(c) > 1.2); }
+  function pickCards(pool, k) {
+    var out = [];
+    if (!pool.length) return out;
+    while (out.length < k) {
+      var keyed = pool.map(function (c) { return [Math.pow(Math.random(), 1 / weight(c)), c]; })
+        .sort(function (a, b) { return b[0] - a[0]; }).map(function (x) { return x[1]; });
+      out = out.concat(keyed.slice(0, k - out.length));
+    }
+    return out;
+  }
+
+  /* ---------- distracteurs difficiles ---------- */
+  function distractors(card, side, n) {
+    var isA = card.k === 'a';
+    var cand = CARDS.filter(function (o) {
+      return o.i !== card.i && (o.k === 'a') === isA && o.bk !== card.bk &&
+        !o.m.some(function (x) { return card.m.indexOf(x) >= 0; });
+    });
+    var ta = card[side];
+    var sc = cand.map(function (o) {
+      var tb = o[side], s = Math.random() * 1.3;
+      var same = side === 'f' ? o.enShape === card.enShape : o.frShape === card.frShape;
+      if (same) s += 2.2;
+      if (o.g === card.g) s += 0.7;
+      s += sim(ta, tb) * 2.4;
+      s += 1 - Math.min(1, Math.abs(ta.length - tb.length) / Math.max(ta.length, tb.length));
+      return [s, o];
+    }).sort(function (a, b) { return b[0] - a[0]; });
+    var out = [], seen = {}; seen[norm(ta)] = 1;
+    for (var i = 0; i < sc.length && out.length < n; i++) {
+      var k = norm(sc[i][1][side]); if (seen[k]) continue; seen[k] = 1; out.push(sc[i][1]);
+    }
+    return out;
+  }
+
+  /* ---------- constructeurs de questions ---------- */
+  function mcq(c, dir) {
+    var promptSide = (dir === 'en2fr' || dir === 'abbr2full') ? 'f' : 'b';
+    var optSide = promptSide === 'f' ? 'b' : 'f';
+    var tags = { en2fr: 'Anglais → Français', fr2en: 'Français → Anglais', abbr2full: 'Abréviation', full2abbr: 'Abréviation' };
+    var hints = { en2fr: '', fr2en: '', abbr2full: 'Que signifie cette abréviation ?', full2abbr: 'Quelle est l\'abréviation correspondante ?' };
+    var opts = distractors(c, optSide, 3).map(function (o) { return { t: o[optSide], ok: false }; });
+    opts.push({ t: c[optSide], ok: true });
+    return { kind: 'mcq', tag: tags[dir], prompt: c[promptSide], hint: hints[dir], opts: shuffle(opts), explain: c.f + '  =  ' + c.b, card: c };
+  }
+  function variants(c) {
+    var v = {};
+    function add(s) { s = norm(s); if (!s) return; v[s] = 1; if (s.indexOf('to ') === 0) v[s.slice(3)] = 1; }
+    add(c.f); add(c.f.replace(/\([^)]*\)/g, ''));
+    c.f.split(/\s*\/\s*/).forEach(add);
+    (c.acc || []).forEach(add);
+    return Object.keys(v);
+  }
+  function typedWord(c) {
+    var acc = {};
+    CARDS.filter(function (o) { return o.k !== 'a' && (o.i === c.i || o.m.some(function (x) { return c.m.indexOf(x) >= 0; })); })
+      .forEach(function (o) { variants(o).forEach(function (x) { acc[x] = 1; }); });
+    return { kind: 'typed', tag: 'Écris-le en anglais', prompt: c.b, hint: /^to /.test(c.f) ? 'Verbe : avec ou sans « to ».' : 'Tape le mot ou l\'expression en anglais.', accepted: Object.keys(acc), tol: 0, show: c.f, explain: c.f + '  =  ' + c.b, card: c };
+  }
+  function typedFull(c) {
+    var acc = [norm(c.b)].concat((c.acc || []).map(norm));
+    var L = norm(c.b).length;
+    return { kind: 'typed', tag: 'Abréviation, forme complète', prompt: c.f, hint: 'Écris ce que signifie cette abréviation, en anglais.', accepted: acc, tol: L >= 20 ? 2 : L >= 9 ? 1 : 0, show: c.b, explain: c.f + '  =  ' + c.b, card: c };
+  }
+  function mutate(w) {
+    var res = {}, vow = 'aeiouy', i;
+    for (i = 1; i < w.length - 1; i++) if (vow.indexOf(w[i]) < 0 && w[i] !== w[i - 1] && w[i] !== w[i + 1]) res[w.slice(0, i + 1) + w[i] + w.slice(i + 1)] = 1;
+    for (i = 1; i < w.length; i++) if (w[i] === w[i - 1]) res[w.slice(0, i) + w.slice(i + 1)] = 1;
+    for (i = 1; i < w.length - 2; i++) if (w[i] !== w[i + 1]) res[w.slice(0, i) + w[i + 1] + w[i] + w.slice(i + 2)] = 1;
+    var vm = { a: 'e', e: 'a', i: 'y', y: 'i', o: 'u', u: 'o' };
+    for (i = 1; i < w.length - 1; i++) if (vm[w[i]]) res[w.slice(0, i) + vm[w[i]] + w.slice(i + 1)] = 1;
+    for (i = 1; i < w.length - 1; i++) res[w.slice(0, i) + w.slice(i + 1)] = 1;
+    if (w.indexOf('ie') >= 0) res[w.replace('ie', 'ei')] = 1;
+    if (w.indexOf('ei') >= 0) res[w.replace('ei', 'ie')] = 1;
+    delete res[w];
+    return Object.keys(res);
+  }
+  function spellParts(c) {
+    if (c.k !== 'w' || /[\/…(]/.test(c.f)) return null;
+    var parts = c.f.split(' '); if (parts.length > 3) return null;
+    var idx = -1, best = 0;
+    parts.forEach(function (p, k) { if (/^[a-z]+$/i.test(p) && p.toLowerCase() !== 'to' && p.length >= 5 && p.length > best) { best = p.length; idx = k; } });
+    return idx < 0 ? null : { parts: parts, idx: idx };
+  }
+  function spellQ(c) {
+    var sp = spellParts(c); if (!sp) return null;
+    var vs = shuffle(mutate(sp.parts[sp.idx])).filter(function (v) {
+      var full = sp.parts.map(function (p, k) { return k === sp.idx ? v : p; }).join(' ');
+      return !ALLF[norm(full)];
+    }).slice(0, 3);
+    if (vs.length < 3) return null;
+    var opts = vs.map(function (v) { return { t: sp.parts.map(function (p, k) { return k === sp.idx ? v : p; }).join(' '), ok: false }; });
+    opts.push({ t: c.f, ok: true });
+    return { kind: 'mcq', tag: 'Orthographe', prompt: c.b, hint: 'Quelle est la bonne orthographe en anglais ?', opts: shuffle(opts), explain: 'Bonne orthographe : ' + c.f, card: c };
+  }
+  var REG = { grow: 'growed', forget: 'forgetted', draw: 'drawed', think: 'thinked', blow: 'blowed', lie: 'lied' };
+  function irrQ(c) {
+    var base = c.f.replace(/^to /, '').replace(/\s*\(.*\)/, '');
+    var p = c.irr[0], pp = c.irr[1], r = REG[base] || (base + 'ed');
+    var good = p + ' – ' + pp;
+    var cand = [p + ' – ' + p, pp + ' – ' + pp, pp + ' – ' + p, r + ' – ' + r, p + ' – ' + r, r + ' – ' + pp];
+    var seen = {}; seen[good] = 1;
+    var wrong = shuffle(cand).filter(function (x) { if (seen[x]) return false; seen[x] = 1; return true; }).slice(0, 3);
+    var opts = wrong.map(function (x) { return { t: x, ok: false }; });
+    opts.push({ t: good, ok: true });
+    return { kind: 'mcq', tag: 'Verbe irrégulier', prompt: 'to ' + base, hint: c.b + '. Quel est le prétérit et le participe passé ?', opts: shuffle(opts), explain: 'to ' + base + ' – ' + p + ' – ' + pp, card: c };
+  }
+  function wchoice(list) {
+    var tot = list.reduce(function (s, x) { return s + x[1]; }, 0), r = Math.random() * tot;
+    for (var i = 0; i < list.length; i++) { r -= list[i][1]; if (r <= 0) return list[i][0]; }
+    return list[0][0];
+  }
+  function makeQ(c, T) {
+    if (c.k === 'a') {
+      var r = Math.random();
+      if (r < 0.5) return mcq(c, 'abbr2full');
+      if (r < 0.8) return mcq(c, 'full2abbr');
+      return T.typed ? typedFull(c) : mcq(c, 'abbr2full');
+    }
+    if (T.irr && c.irr && Math.random() < 0.65) return irrQ(c);
+    var pool = [];
+    if (T.en2fr) pool.push(['en2fr', 38]);
+    if (T.fr2en) pool.push(['fr2en', 30]);
+    if (T.typed && c.typed) pool.push(['typed', 17]);
+    if (T.spell && spellParts(c)) pool.push(['spell', 9]);
+    if (!pool.length) pool.push(['en2fr', 1]);
+    var t = wchoice(pool);
+    if (t === 'typed') return typedWord(c);
+    if (t === 'spell') return spellQ(c) || mcq(c, 'en2fr');
+    return mcq(c, t);
+  }
+  function build(n, conf) {
+    var T = conf.T;
+    var words = CARDS.filter(function (c) { return c.k !== 'a'; });
+    var acr = T.abbr ? CARDS.filter(function (c) { return c.k === 'a'; }) : [];
+    if (conf.focus === 'weak') {
+      var w2 = words.filter(isWeak), a2 = acr.filter(isWeak);
+      if (w2.length + a2.length >= 8) { words = w2; acr = a2; } else { words = words.filter(function (c) { return true; }); }
+    }
+    var nA = acr.length ? Math.min(acr.length, Math.max(3, Math.round(n * 0.17))) : 0;
+    if (conf.focus === 'weak') nA = Math.min(nA, acr.length);
+    var cards = pickCards(acr, nA).concat(pickCards(words, n - nA));
+    return shuffle(cards).map(function (c) { return makeQ(c, T); });
+  }
+
+  /* ---------- état et rendu ---------- */
+  var S = null, timer = null;
+  function view(name) {
+    ['quiz', 'end', 'set', 'corr'].forEach(function (v) { $('#v-' + v).hidden = v !== name; });
+    window.scrollTo(0, 0);
+  }
+  function newSeries(qs) {
+    S = { qs: qs, i: 0, score: 0, done: 0, wrong: [], streak: 0, best: 0, t0: Date.now(), locked: false };
+    showQ();
+  }
+  function startDefault() { newSeries(build(cfg.n, cfg)); }
+  function record(q, ok, given) {
+    var k = q.card.f, st = stats[k] || { m: 0, s: 0 };
+    if (ok) { st.s += 1; } else { st.m += 1; st.s = 0; }
+    stats[k] = st; LS.set('vocab_stats_v1', stats);
+    S.done++;
+    if (ok) { S.score++; S.streak++; if (S.streak > S.best) S.best = S.streak; }
+    else { S.streak = 0; S.wrong.push({ q: q, given: given }); }
+    $('#score').textContent = S.score;
+    $('#streak').textContent = S.streak >= 3 ? 'Série : ' + S.streak : '';
+  }
+  function showQ() {
+    view('quiz');
+    var q = S.qs[S.i]; if (!q) return end();
+    S.locked = false;
+    $('#cnt').textContent = (S.i + 1) + ' / ' + S.qs.length;
+    $('#score').textContent = S.score;
+    $('#streak').textContent = S.streak >= 3 ? 'Série : ' + S.streak : '';
+    $('#fill').style.width = (S.i / S.qs.length * 100) + '%';
+    var h = '<span class="tag">' + esc(q.tag) + '</span><h1 class="prompt">' + esc(q.prompt) + '</h1>';
+    if (q.hint) h += '<p class="hint">' + esc(q.hint) + '</p>';
+    if (q.kind === 'mcq') {
+      h += '<div class="opts">' + q.opts.map(function (o, i) {
+        return '<button class="opt" data-i="' + i + '"><span class="n">' + (i + 1) + '</span><span>' + esc(o.t) + '</span></button>';
+      }).join('') + '</div>';
+    } else {
+      h += '<div class="typed"><input id="ans" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Ta réponse"><button class="primary" id="ok">Valider</button></div>' +
+        '<div class="row"><button class="link" id="idk">Je ne sais pas</button></div>';
+    }
+    h += '<div id="fb"></div>';
+    $('#card').innerHTML = h;
+    if (q.kind === 'mcq') {
+      Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (b) { b.addEventListener('click', function () { answerMcq(+b.getAttribute('data-i')); }); });
+    } else {
+      $('#ok').addEventListener('click', function () { answerTyped(false); });
+      $('#idk').addEventListener('click', function () { answerTyped(true); });
+      var inp = $('#ans'); if (inp) { try { inp.focus(); } catch (e) {} }
+    }
+  }
+  function feedback(ok, head, body, cls) {
+    var last = S.i === S.qs.length - 1;
+    $('#fb').innerHTML = '<div class="fb ' + (cls || (ok ? 'good' : 'bad')) + '"><strong>' + esc(head) + '</strong><span>' + esc(body) + '</span></div>' +
+      '<div class="row" style="margin-top:12px"><button class="primary" id="next">' + (last ? 'Voir le bilan' : 'Suivant') + '</button></div>';
+    var nb = $('#next'); nb.addEventListener('click', next);
+    if (ok && cfg.auto && !last) { timer = setTimeout(next, 850); } else { try { nb.focus(); } catch (e) {} }
+  }
+  function next() { if (timer) { clearTimeout(timer); timer = null; } S.i++; if (S.i >= S.qs.length) end(); else showQ(); }
+  function answerMcq(idx) {
+    if (S.locked) return; S.locked = true;
+    var q = S.qs[S.i], ok = q.opts[idx].ok;
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (b, i) {
+      b.disabled = true;
+      if (q.opts[i].ok) b.classList.add('ok'); else if (i === idx) b.classList.add('bad'); else b.classList.add('dim');
+    });
+    record(q, ok, q.opts[idx].t);
+    feedback(ok, ok ? 'Juste' : 'Raté', q.explain);
+  }
+  function answerTyped(giveUp) {
+    if (S.locked) return;
+    var q = S.qs[S.i], inp = $('#ans'), val = inp.value;
+    if (!giveUp && !norm(val)) { inp.focus(); return; }
+    S.locked = true; inp.disabled = true; $('#ok').disabled = true; $('#idk').disabled = true;
+    var u = norm(val), ok = false, near = false, note = '';
+    if (!giveUp) {
+      if (q.accepted.indexOf(u) >= 0) ok = true;
+      else {
+        var best = Math.min.apply(null, q.accepted.map(function (a) { return lev(u, a); }));
+        if (q.tol > 0 && best <= q.tol) { ok = true; note = ' (petite faute tolérée)'; }
+        else if (best <= 1 && u.length >= 4) near = true;
+      }
+    }
+    record(q, ok, giveUp ? '(passé)' : val);
+    if (ok) feedback(true, 'Juste', q.explain + note);
+    else if (near) feedback(false, 'Presque : une lettre à corriger', 'Réponse : ' + q.show + '. ' + q.explain, 'warn');
+    else feedback(false, giveUp ? 'Voilà la réponse' : 'Raté', 'Réponse : ' + q.show + '. ' + q.explain);
+  }
+  function end() {
+    if (timer) { clearTimeout(timer); timer = null; }
+    S.ended = true;
+    view('end');
+    var N = S.done, pct = N ? Math.round(S.score / N * 100) : 0;
+    var secs = Math.round((Date.now() - S.t0) / 1000), mm = Math.floor(secs / 60), ss = ('0' + (secs % 60)).slice(-2);
+    var msg = !N ? 'Aucune question répondue.' : pct >= 90 ? 'Très solide.' : pct >= 75 ? 'Bien. Quelques trous à boucher.' : pct >= 55 ? 'Il reste du travail, refais tes erreurs.' : 'Pas encore ça. Refais tes erreurs puis relance une série.';
+    var seen = {}, uniq = S.wrong.filter(function (w) { if (seen[w.q.card.i]) return false; seen[w.q.card.i] = 1; return true; });
+    var h = '<h2>Bilan</h2><div class="big">' + S.score + ' / ' + N + '</div><p style="margin:0">' + pct + ' % de réussite. ' + msg + '</p>' +
+      '<div class="stats"><span>Temps : <b>' + mm + ' min ' + ss + ' s</b></span><span>Meilleure série : <b>' + S.best + '</b></span><span>Mots ratés : <b>' + uniq.length + '</b></span></div>' +
+      '<div class="row"><button class="primary" id="e-new">Nouvelle série aléatoire</button>' +
+      (uniq.length ? '<button class="ghost" id="e-redo">Refaire mes erreurs (' + uniq.length + ')</button>' : '') +
+      '<button class="ghost" id="e-set">Réglages</button></div>';
+    if (uniq.length) {
+      h += '<h3>Mes erreurs</h3><div class="list">' + uniq.map(function (w) {
+        var c = w.q.card;
+        return '<div><span class="q">' + esc(c.f) + '  =  ' + esc(c.b) + '</span><span class="a">Ta réponse : <s>' + esc(w.given) + '</s></span></div>';
+      }).join('') + '</div>';
+    }
+    $('#v-end').innerHTML = h;
+    $('#e-new').addEventListener('click', startDefault);
+    $('#e-set').addEventListener('click', openSettings);
+    var rb = $('#e-redo');
+    if (rb) rb.addEventListener('click', function () {
+      var all = { en2fr: true, fr2en: true, typed: true, spell: true, abbr: true, irr: true };
+      newSeries(shuffle(uniq.map(function (w) { return makeQ(w.q.card, all); })));
+    });
+  }
+
+  /* ---------- réglages et corrections ---------- */
+  var KEYS = ['en2fr', 'fr2en', 'typed', 'spell', 'abbr', 'irr'];
+  function openSettings() {
+    KEYS.forEach(function (k) { $('#t-' + k).checked = !!cfg.T[k]; });
+    $('#s-n').value = String(cfg.n); $('#s-focus').value = cfg.focus; $('#s-auto').checked = !!cfg.auto;
+    var weak = CARDS.filter(isWeak).length;
+    $('#fine').textContent = CARDS.length + ' cartes chargées (dont ' + CARDS.filter(function (c) { return c.k === 'a'; }).length + ' abréviations). Mots ratés repérés sur cet appareil : ' + weak + '.';
+    view('set');
+  }
+  function applySettings() {
+    KEYS.forEach(function (k) { cfg.T[k] = $('#t-' + k).checked; });
+    if (!cfg.T.en2fr && !cfg.T.fr2en && !cfg.T.typed) cfg.T.en2fr = true;
+    cfg.n = +$('#s-n').value; cfg.focus = $('#s-focus').value; cfg.auto = $('#s-auto').checked;
+    LS.set('vocab_cfg_v1', cfg);
+  }
+  function openCorr() {
+    $('#corr-list').innerHTML = CORR.map(function (c) {
+      var left = esc(c.of) + '  /  ' + esc(c.ob);
+      if (c.excluded) return '<div><span class="q">' + left + '</span><span class="a">Retirée du quiz.</span><span class="note">' + esc(c.note || '') + '</span></div>';
+      return '<div><span class="q"><s style="color:var(--bad)">' + left + '</s></span><span class="a">' + esc(c.nf) + '  /  ' + esc(c.nb) + '</span>' + (c.note ? '<span class="note">' + esc(c.note) + '</span>' : '') + '</div>';
+    }).join('');
+    view('corr');
+  }
+  $('#b-set').addEventListener('click', openSettings);
+  $('#b-stop').addEventListener('click', end);
+  $('#b-cancel').addEventListener('click', function () { if (S && !S.ended) view('quiz'); else end(); });
+  $('#b-go').addEventListener('click', function () { applySettings(); startDefault(); });
+  $('#b-corr').addEventListener('click', openCorr);
+  $('#b-corr-back').addEventListener('click', openSettings);
+  $('#b-reset').addEventListener('click', function () { stats = {}; LS.set('vocab_stats_v1', stats); openSettings(); });
+
+  document.addEventListener('keydown', function (e) {
+    if ($('#v-quiz').hidden || !S) return;
+    var q = S.qs[S.i]; if (!q) return;
+    if (e.key === 'Enter') {
+      if (S.locked) { var nb = $('#next'); if (nb) { e.preventDefault(); next(); } }
+      else if (q.kind === 'typed') { e.preventDefault(); answerTyped(false); }
+    } else if (q.kind === 'mcq' && !S.locked && /^[1-4]$/.test(e.key)) { answerMcq(+e.key - 1); }
+  });
+
+  window.__vocab = { build: build, makeQ: makeQ, CARDS: CARDS };
+  startDefault();
+})();
+</script>
